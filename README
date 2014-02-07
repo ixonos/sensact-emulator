@@ -1,4 +1,4 @@
-This is the emulator plugin for libsensact
+This is the emulator plugin for libsensact and some more
 
 To compile simply do eg.:
 make SA_INCLUDE=-I../libsensact/src/include SA_PLUGIN_C_FILE=../libsensact/src/plugin.c
