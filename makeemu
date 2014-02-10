@@ -1,0 +1,1 @@
+make SA_INCLUDE=-I../libsensact/src/include emulator

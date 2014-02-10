@@ -1,0 +1,2 @@
+make SA_INCLUDE=-I../libsensact/src/include SA_PLUGIN_C_FILE=../libsensact/src/plugin.c                       
+cp sensact-emulator.so ../sensact-server/plugins/

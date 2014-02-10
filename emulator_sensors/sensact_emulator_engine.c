@@ -28,88 +28,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/shm.h>
+#include <time.h>
+#include <errno.h>
+#include "sensact_emulator_engine.h"
 
-#ifndef SENS_EMULATOR_SENSHUB_H_
-#define SENS_EMULATOR_SENSHUB_H_
+void *shared_mem_engine = (void*) 0;
+engine_t * engine;
+int shmid;
+engine_t *create_emulator_engine() {
 
-#define shared_memory_senshub 1235
+	shmid = shmget((key_t) shared_memory_engine, sizeof(engine_t),
+			0666 | IPC_CREAT);
+	if (shmid == -1) {
+		printf("shmget failed %s \n", strerror( errno));
+
+	} else {
+		shared_mem_engine = shmat(shmid, (void *) 0, 0);
+		engine = (engine_t*) shared_mem_engine;
+	}
+
+	if (engine != NULL) {
+		engine->setdirection = setdirection;
+		engine->getdirection = getdirection;
+		engine->direction = 0;
+		engine->direction_name = "direction";
+		engine->rpm = 1000;
+		engine->rpm_name = "rpm";
+		engine->getrpm = getrpm;
+		engine->setrpm = setrpm;
+	}
+	return engine;
+}
 /**
- *A TI senshub emulation
+ * detach memory
  */
+void destroy_engine_emulator() {
+	shmdt(shared_mem_engine);
+}
 
-typedef struct {
-	int roll;
-	const char *roll_name;
-	void (*setroll)(int roll);
-	int (*getroll)(void);
+void setrpm(int newrpm) {
+	engine->rpm = newrpm;
+}
 
-	int pitch;
-	const char *pitch_name;
-	void (*setpitch)(int roll);
-	int (*getpitch)(void);
+int getrpm(void) {
+	return engine->rpm;
+}
 
-	int yaw;
-	const char *yaw_name;
-	void (*setyaw)(int yaw);
-	int (*getyaw)(void);
+void setdirection(int newdirection) {
+	engine->direction = newdirection;
+}
 
-	float light;
-	const char *light_name;
-	void (*setlight)(float light);
-	float (*getlight)(void);
+char getdirection() {
+	return engine->direction;
+}
 
-	float presure;
-	const char *presure_name;
-	void (*setpresure)(float presure);
-	float (*getpresure)(void);
-
-	float objtemp;
-	const char *objtemp_name;
-	float (*getobjtemp)(void);
-	void (*setobjtemp)(float objtemp);
-
-	float ambtemp;
-	const char *ambtemp_name;
-	float (*getambtemp)(void);
-	void (*setambtemp)(float ambtemp);
-
-	float humidity;
-	const char *humidity_name;
-	void (*sethumidity)(float humidity);
-	float (*gethumidity)(void);
-} senshub_t;
-
-/**
- * call to create a engine and attach shared memory
- */
-senshub_t *create_senshub_emulator();
-/**
- * Detach the shared memory
- */
-void destroy_senshub_emulator(void);
-
-int getroll();
-void setroll(int roll);
-
-int getpitch();
-void setpitch(int pitch);
-
-int getyaw();
-void setyaw(int yaw);
-
-float getlight();
-void setlight(float light);
-
-float getpresure();
-void setpresure(float presure);
-
-float getobjtemp();
-void setobjtemp(float objtemp);
-
-float getambtemp();
-void setambtemp(float ambtemp);
-
-float gethumidity();
-void sethumidity(float humidity);
-
-#endif

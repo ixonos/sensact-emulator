@@ -34,9 +34,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "sensact-emulator-test.h"
-#include "../../include/sensact/sensact-emulator.h"
-#include "../emulator_sensors/sensact_emulator_engine.h"
-#include "../emulator_sensors/sensact_emulator_senshub.h"
+#include "../../sensact-emulator.h"
 
 int tests_run = 0;
 
@@ -46,6 +44,11 @@ engine_t *engine;
 /**
  *dummy to write RPM
  */
+
+void emulator_set_direction(int direction) {
+	engine->direction = direction;
+}
+
 void emulator_set_rpm(int rpm) {
 	engine->rpm = rpm;
 }
@@ -125,11 +128,12 @@ static char * test_sweep_engine_and_reverse() {
 	int count;
 	for (count = 0; count < 8; count++) {
 		emulator_set_rpm(count * 1000);
-		setdirection(count % 2 > 0);
+		emulator_set_direction(count % 2 > 0);
 		sleep(2);
 	}
 	emulator_set_rpm(1000);
-	setdirection(1);
+	emulator_set_direction(1);
+	//setdirection(1);
 
 	return 0;
 }
@@ -139,7 +143,7 @@ static char * test_sweep_engine_and_reverse() {
 static char * test_orientation_sweep() {
 
 	int i, count = 0;
-	printf ("Starting %s\n", __PRETTY_FUNCTION__);
+	printf("Starting %s\n", __PRETTY_FUNCTION__);
 
 	for (count = 0; count < 10; count++) {
 		for (i = 0; i < 1000; i++) {
@@ -164,34 +168,34 @@ static char * test_orientation_sweep() {
 			usleep(3000);
 		}
 	}
-	printf ("Ending %s\n", __PRETTY_FUNCTION__);
+	printf("Ending %s\n", __PRETTY_FUNCTION__);
 	return 0;
 }
 
 static char * test_air_pressure() {
-	printf ("Starting %s\n", __PRETTY_FUNCTION__);
+	printf("Starting %s\n", __PRETTY_FUNCTION__);
 	int factor = 100;
-	int pressure = 700*factor;
+	int pressure = 700 * factor;
 	int i;
 	int j;
 	for (j = 0; j < 10; j++) {
-		for (i = pressure; i < 1200*factor; i++) {
+		for (i = pressure; i < 1200 * factor; i++) {
 			senshub->presure = i;
 			usleep(1000);
 		}
 		sleep(1);
-		for (i = 1200*factor; i > pressure; i--) {
+		for (i = 1200 * factor; i > pressure; i--) {
 			senshub->presure = i;
 			usleep(1000);
 		}
 		sleep(1);
 	}
-	printf ("Ending %s\n", __PRETTY_FUNCTION__);
+	printf("Ending %s\n", __PRETTY_FUNCTION__);
 	return 0;
 }
 
 static char * test_brightness_sweep() {
-	printf ("Starting %s\n", __PRETTY_FUNCTION__);
+	printf("Starting %s\n", __PRETTY_FUNCTION__);
 	int brightness = 0;
 	int i;
 	int j;
@@ -208,12 +212,12 @@ static char * test_brightness_sweep() {
 		}
 		sleep(1);
 	}
-	printf ("Ending %s\n", __PRETTY_FUNCTION__);
+	printf("Ending %s\n", __PRETTY_FUNCTION__);
 	return 0;
 }
 
 static char * test_humidity_sweep() {
-	printf ("Starting %s\n", __PRETTY_FUNCTION__);
+	printf("Starting %s\n", __PRETTY_FUNCTION__);
 	int humidity = 0;
 	int i;
 	int j = 0;
@@ -229,12 +233,12 @@ static char * test_humidity_sweep() {
 		}
 		sleep(1);
 	}
-	printf ("Ending %s\n", __PRETTY_FUNCTION__);
+	printf("Ending %s\n", __PRETTY_FUNCTION__);
 	return 0;
 }
 
 static char * test_ambient_temperature_sweep() {
-	printf ("Starting %s\n", __PRETTY_FUNCTION__);
+	printf("Starting %s\n", __PRETTY_FUNCTION__);
 	int temp = -20;
 	int i;
 	int j = 0;
@@ -251,12 +255,12 @@ static char * test_ambient_temperature_sweep() {
 		}
 		sleep(1);
 	}
-	printf ("Ending %s\n", __PRETTY_FUNCTION__);
+	printf("Ending %s\n", __PRETTY_FUNCTION__);
 	return 0;
 }
 
 static char * test_temperature_sweep() {
-	printf ("Starting %s\n", __PRETTY_FUNCTION__);
+	printf("Starting %s\n", __PRETTY_FUNCTION__);
 	int temp = -20;
 	int i;
 	int j = 0;
@@ -272,19 +276,19 @@ static char * test_temperature_sweep() {
 		}
 		sleep(1);
 	}
-	printf ("Ending %s\n", __PRETTY_FUNCTION__);
+	printf("Ending %s\n", __PRETTY_FUNCTION__);
 	return 0;
 }
 
 static char* runsenshub_tests() {
-	/*
+
 	mu_run_test(test_orientation_sweep);
 	mu_run_test(test_temperature_sweep);
 
 	mu_run_test(test_ambient_temperature_sweep);
 	mu_run_test(test_humidity_sweep);
 	mu_run_test(test_brightness_sweep);
-	*/
+
 	mu_run_test(test_air_pressure);
 
 	return 0;
@@ -302,7 +306,7 @@ static char* runengine_tests() {
 
 static char * all_tests() {
 	char * retval = 0;
-	//retval = runengine_tests();
+	retval = runengine_tests();
 	retval = runsenshub_tests();
 	return retval;
 }

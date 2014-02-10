@@ -29,36 +29,88 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SENS_EMULATOR_BLE_H_
-#define SENS_EMULATOR_BLE_H_
-#define shared_memory_ble 1236
+#ifndef SENS_EMULATOR_SENSHUB_H_
+#define SENS_EMULATOR_SENSHUB_H_
 
+#define shared_memory_senshub 1235
 /**
- *A little engine, with rpm and motor direction
+ *A TI senshub emulation
  */
+const char * emulator_senshub = "senshub0";
+
 typedef struct {
-	float temp;
-	const char * temp_name;
-	void (*settemp)(float rpm);
-	float (*gettemp)(void);
+	int roll;
+	const char *roll_name;
+	void (*setroll)(int roll);
+	int (*getroll)(void);
 
-} ble_t;
+	int pitch;
+	const char *pitch_name;
+	void (*setpitch)(int roll);
+	int (*getpitch)(void);
+
+	int yaw;
+	const char *yaw_name;
+	void (*setyaw)(int yaw);
+	int (*getyaw)(void);
+
+	float light;
+	const char *light_name;
+	void (*setlight)(float light);
+	float (*getlight)(void);
+
+	float presure;
+	const char *presure_name;
+	void (*setpresure)(float presure);
+	float (*getpresure)(void);
+
+	float objtemp;
+	const char *objtemp_name;
+	float (*getobjtemp)(void);
+	void (*setobjtemp)(float objtemp);
+
+	float ambtemp;
+	const char *ambtemp_name;
+	float (*getambtemp)(void);
+	void (*setambtemp)(float ambtemp);
+
+	float humidity;
+	const char *humidity_name;
+	void (*sethumidity)(float humidity);
+	float (*gethumidity)(void);
+} senshub_t;
 
 /**
- * call to create a engine
+ * call to create a engine and attach shared memory
  */
-ble_t *create_emulator_ble();
+senshub_t *create_senshub_emulator();
 /**
- * destroy and detach memory
+ * Detach the shared memory
  */
-void destroy_ble_emulator(void);
-/**
- * set temperature
- */
-void settemp(float temp);
-/*
- * get temperature
- */
-float gettemp(void);
+void destroy_senshub_emulator(void);
 
-#endif /* SENS_EMULATOR_BLE_H_ */
+int getroll();
+void setroll(int roll);
+
+int getpitch();
+void setpitch(int pitch);
+
+int getyaw();
+void setyaw(int yaw);
+
+float getlight();
+void setlight(float light);
+
+float getpresure();
+void setpresure(float presure);
+
+float getobjtemp();
+void setobjtemp(float objtemp);
+
+float getambtemp();
+void setambtemp(float ambtemp);
+
+float gethumidity();
+void sethumidity(float humidity);
+
+#endif

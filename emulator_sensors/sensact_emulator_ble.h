@@ -28,63 +28,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <sys/shm.h>
-#include <time.h>
-#include <errno.h>
-#include "sensact_emulator_engine.h"
 
-void *shared_mem_engine = (void*) 0;
-engine_t * engine;
-int shmid;
-engine_t *create_emulator_engine() {
+#ifndef SENS_EMULATOR_BLE_H_
+#define SENS_EMULATOR_BLE_H_
+#define shared_memory_ble 1236
 
-	shmid = shmget((key_t) shared_memory_engine, sizeof(engine_t),
-			0666 | IPC_CREAT);
-	if (shmid == -1) {
-		printf("shmget failed %s \n", strerror( errno));
-
-	} else {
-		shared_mem_engine = shmat(shmid, (void *) 0, 0);
-		engine = (engine_t*) shared_mem_engine;
-	}
-
-	if (engine != NULL) {
-		engine->setdirection = setdirection;
-		engine->getdirection = getdirection;
-		engine->direction = 0;
-		engine->direction_name = "direction";
-		engine->rpm = 1000;
-		engine->rpm_name = "rpm";
-		engine->getrpm = getrpm;
-		engine->setrpm = setrpm;
-	}
-	return engine;
-}
 /**
- * detach memory
+ *A little engine, with rpm and motor direction
  */
-void destroy_engine_emulator() {
-	shmdt(shared_mem_engine);
-}
+typedef struct {
+	float temp;
+	const char * temp_name;
+	void (*settemp)(float rpm);
+	float (*gettemp)(void);
 
-void setrpm(int newrpm) {
-	engine->rpm = newrpm;
-}
+} ble_t;
 
-int getrpm(void) {
-	return engine->rpm;
-}
+/**
+ * call to create a engine
+ */
+ble_t *create_emulator_ble();
+/**
+ * destroy and detach memory
+ */
+void destroy_ble_emulator(void);
+/**
+ * set temperature
+ */
+void settemp(float temp);
+/*
+ * get temperature
+ */
+float gettemp(void);
 
-void setdirection(char newdirection) {
-	engine->direction = newdirection;
-}
+const char *emulator_bluetooth_lowenergy_device = "ble_device";
 
-char getdirection() {
-	return engine->direction;
-}
-
+#endif /* SENS_EMULATOR_BLE_H_ */
