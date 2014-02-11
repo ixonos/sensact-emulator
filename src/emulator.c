@@ -30,12 +30,15 @@ const char * var = "";
 engine_t *engine;
 senshub_t *senshub;
 ble_t *bledevice;
+const char * emulator_engine = "motor0";
+const char * emulator_bluetooth_lowenergy_device = "ble_device";
+const char * emulator_senshub = "senshub0";
 
 int emulator_connect(int device, void *config) {
 	int retval = SA_ERROR;
 
 	struct emulator_config_t *dev = (struct emulator_config_t*) config;
-	char* devicename = dev->name;
+	const char* devicename = dev->name;
 
 	if (!(strcmp(devicename, emulator_bluetooth_lowenergy_device))) {
 		bledevice = create_emulator_ble();

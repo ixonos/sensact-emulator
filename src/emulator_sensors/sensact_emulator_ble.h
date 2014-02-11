@@ -61,6 +61,6 @@ void settemp(float temp);
  */
 float gettemp(void);
 
-const char *emulator_bluetooth_lowenergy_device = "ble_device";
+
 
 #endif /* SENS_EMULATOR_BLE_H_ */

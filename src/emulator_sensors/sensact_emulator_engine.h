@@ -37,16 +37,16 @@
  *A little engine, with rpm and motor direction
  */
 
-extern const char * emulator_engine;
+
 typedef struct {
 	int rpm;
 	const char * rpm_name;
 	void (*setrpm)(int rpm);
 	int (*getrpm)(void);
-	char direction;
+	uint8_t direction;
 	const char * direction_name;
-	void (*setdirection)(char direction);
-	char (*getdirection)(void);
+	void (*setdirection)(uint8_t direction);
+	uint8_t (*getdirection)(void);
 
 } engine_t;
 
@@ -70,11 +70,11 @@ int getrpm(void);
 /*
  * setDirection of the engine
  */
-void setdirection(int direction);
+void setdirection(uint8_t direction);
 /*
  * getDirection of the engine
  */
-char getdirection();
+uint8_t getdirection();
 /*
  * Start the emulator
  */

@@ -38,7 +38,7 @@
 #include <errno.h>
 #include "sensact_emulator_engine.h"
 
-const char * emulator_engine = "motor0";
+
 void *shared_mem_engine = (void*) 0;
 engine_t * engine;
 int shmid;
@@ -81,11 +81,11 @@ int getrpm(void) {
 	return engine->rpm;
 }
 
-void setdirection(int newdirection) {
+void setdirection(uint8_t newdirection) {
 	engine->direction = newdirection;
 }
 
-char getdirection() {
+uint8_t getdirection() {
 	return engine->direction;
 }
 

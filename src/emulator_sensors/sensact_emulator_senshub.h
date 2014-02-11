@@ -36,7 +36,7 @@
 /**
  *A TI senshub emulation
  */
-const char * emulator_senshub = "senshub0";
+
 
 typedef struct {
 	int roll;
