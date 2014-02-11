@@ -25,8 +25,8 @@ emulator_sensors/emulator_sensors.a:
 emulator_tests/emulator_tests.a:
 	make -C emulator_tests CC=$(CC) AR=$(AR) CFLAGS="$(CFLAGS)"
 
-sensact-emulator.so: emulator.o plugin.o emulator_sensors/emulator_sensors.a
-	$(CC) -shared -Wl,-soname,sensact-emulator.so -o sensact-emulator.so $<
+sensact-emulator.so: emulator.o emulator_sensors/emulator_sensors.a plugin.o
+	$(CC) -shared -Wl,-soname,sensact-emulator.so -o sensact-emulator.so $^
 
 emulator: emulator_tests/emulator_tests.a
 	$(CC) -Wall emulator_tests/emulator_tests.a -o emulator $(LDFLAGS)
