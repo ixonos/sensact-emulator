@@ -38,6 +38,7 @@
 #include <errno.h>
 #include "sensact_emulator_engine.h"
 
+const char * emulator_engine = "motor0";
 void *shared_mem_engine = (void*) 0;
 engine_t * engine;
 int shmid;

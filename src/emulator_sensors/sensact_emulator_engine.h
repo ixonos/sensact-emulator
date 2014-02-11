@@ -37,7 +37,7 @@
  *A little engine, with rpm and motor direction
  */
 
-const char * emulator_engine = "motor0";
+extern const char * emulator_engine;
 typedef struct {
 	int rpm;
 	const char * rpm_name;
