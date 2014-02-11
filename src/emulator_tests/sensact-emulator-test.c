@@ -34,7 +34,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "sensact-emulator-test.h"
-#include "../../sensact-emulator.h"
+#include "../emulator_sensors/sensact_emulator_ble.h"
+#include "../emulator_sensors/sensact_emulator_engine.h"
+#include "../emulator_sensors/sensact_emulator_senshub.h"
+
 
 int tests_run = 0;
 

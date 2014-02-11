@@ -20,13 +20,16 @@ emulator.o: emulator.c
 	$(CC) $(CFLAGS) $(INCLUDE) -fPIC -c $<
 
 emulator_sensors/emulator_sensors.a:
-	make -C emulator_sensors emulator_sensors.a CC=$(CC) AR=$(AR) CFLAGS="$(CFLAGS)"
+	make -C emulator_sensors CC=$(CC) AR=$(AR) CFLAGS="$(CFLAGS)"
+
+emulator_tests/emulator_tests.a:
+	make -C emulator_tests CC=$(CC) AR=$(AR) CFLAGS="$(CFLAGS)"
 
 sensact-emulator.so: emulator.o plugin.o emulator_sensors/emulator_sensors.a
 	$(CC) -shared -Wl,-soname,sensact-emulator.so -o sensact-emulator.so $<
 
-emulator: emulator_tests/sensact-emulator-test.o
-	$(CC) -Wall emulator_tests/sensact-emulator-test.o -o emulator $(LDFLAGS)
+emulator: emulator_tests/emulator_tests.a
+	$(CC) -Wall emulator_tests/emulator_tests.a -o emulator $(LDFLAGS)
 
 clean:
 	rm -f *.o *.so
