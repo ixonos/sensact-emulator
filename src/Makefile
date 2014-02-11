@@ -14,14 +14,16 @@ endif
 all: plugin.o sensact-emulator.so
 
 plugin.o: $(SA_PLUGIN_C_FILE)
-	$(CC) $(CFLAGS) $(INCLUDE) -fPIC -c $(SA_PLUGIN_C_FILE)
+	$(CC) $(CFLAGS) $(INCLUDE) -fPIC -c $<
+
+emulator.o: emulator.c
+	$(CC) $(CFLAGS) $(INCLUDE) -fPIC -c $<
 
 emulator_sensors/emulator_sensors.a:
-	make -C emulator_sensors emulator_sensors.a
+	make -C emulator_sensors emulator_sensors.a CC=$(CC) AR=$(AR) CFLAGS="$(CFLAGS)"
 
-sensact-emulator.so: emulator.c plugin.o emulator_sensors/emulator_sensors.a
-	$(CC) $(CFLAGS) $(INCLUDE) -fPIC -c emulator.c 
-	$(CC) -shared -Wl,-soname,sensact-emulator.so -o sensact-emulator.so emulator.o plugin.o emulator_sensors/emulator_sensors.a
+sensact-emulator.so: emulator.o plugin.o emulator_sensors/emulator_sensors.a
+	$(CC) -shared -Wl,-soname,sensact-emulator.so -o sensact-emulator.so $<
 
 emulator: emulator_tests/sensact-emulator-test.o
 	$(CC) -Wall emulator_tests/sensact-emulator-test.o -o emulator $(LDFLAGS)
@@ -30,4 +32,7 @@ clean:
 	rm -f *.o *.so
 	make -C emulator_sensors clean
 
-.PHONY: all clean
+install:
+	cp include/sensact/plugins/emulator_config.h $(SA_INCLUDE_DIR)/sensact/plugins
+
+.PHONY: all clean install
