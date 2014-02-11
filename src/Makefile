@@ -4,11 +4,11 @@ CFLAGS=-Wall -Wno-unused-variable -Wno-unused-but-set-variable -std=gnu99
 INCLUDE=-I./include -I$(SA_INCLUDE_DIR)
 
 ifndef SA_INCLUDE_DIR
-$(error "You must define SA_INCLUDE_DIR to point at libsensact include dir")
+$(warning "You must define SA_INCLUDE_DIR to point at libsensact include dir")
 endif
 
 ifndef SA_PLUGIN_C_FILE
-$(error "You must define SA_PLUGIN_C_FILE to point at libsensact plugin.c")
+$(warning "You must define SA_PLUGIN_C_FILE to point at libsensact plugin.c")
 endif
 
 all: plugin.o sensact-emulator.so
