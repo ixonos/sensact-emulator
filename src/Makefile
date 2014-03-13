@@ -42,7 +42,7 @@ clean:
 	make -C emulator_sensors clean
 
 install:
-	mkdir -p $(SA_INCLUDE_DIR)/sensact/plugins
-	cp include/sensact/plugins/emulator_config.h $(SA_INCLUDE_DIR)/sensact/plugins
+	mkdir -p ../../sensact-server/plugins
+	cp sensact-emulator.so ../../sensact-server/plugins
 
 .PHONY: all clean install
