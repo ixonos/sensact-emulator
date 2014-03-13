@@ -55,6 +55,12 @@ static  emulator_config_t emulator_senshub_config = {
     };
     
     Building:
+    Enter src and do a 
+    $make
+    $make install
+
+
+    old building ins:
     First you will need to make the plugin and afterwards copy it to the server plugins:
     
     make SA_INCLUDE=-I../libsensact/src/include SA_PLUGIN_C_FILE=../libsensact/src/plugin.c

@@ -1,7 +1,13 @@
 CC=$(PREFIX)gcc
 AR=$(PREFIX)ar
+
+SA_INCLUDE_DIR=../../libsensact/src/include
+SA_PLUGIN_C_FILE=../../libsensact/src/plugin.c
+
+
 CFLAGS=-Wall -Wno-unused-variable -Wno-unused-but-set-variable -std=gnu99 
 INCLUDE=-I./include -I$(SA_INCLUDE_DIR)
+
 
 ifndef SA_INCLUDE_DIR
 $(warning "You must define SA_INCLUDE_DIR to point at libsensact include dir")
@@ -11,7 +17,7 @@ ifndef SA_PLUGIN_C_FILE
 $(warning "You must define SA_PLUGIN_C_FILE to point at libsensact plugin.c")
 endif
 
-all: plugin.o sensact-emulator.so
+all: plugin.o sensact-emulator.so emulator
 
 plugin.o: $(SA_PLUGIN_C_FILE)
 	$(CC) $(CFLAGS) $(INCLUDE) -fPIC -c $<
@@ -36,6 +42,7 @@ clean:
 	make -C emulator_sensors clean
 
 install:
+	mkdir -p $(SA_INCLUDE_DIR)/sensact/plugins
 	cp include/sensact/plugins/emulator_config.h $(SA_INCLUDE_DIR)/sensact/plugins
 
 .PHONY: all clean install

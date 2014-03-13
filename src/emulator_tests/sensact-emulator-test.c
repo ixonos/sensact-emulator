@@ -33,6 +33,7 @@
 #include <sys/shm.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdint.h>
 #include "sensact-emulator-test.h"
 #include "../emulator_sensors/sensact_emulator_ble.h"
 #include "../emulator_sensors/sensact_emulator_engine.h"
