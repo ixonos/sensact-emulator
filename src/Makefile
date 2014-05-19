@@ -6,6 +6,7 @@ SA_PLUGIN_C_FILE=../../libsensact/src/plugin.c
 
 
 CFLAGS=-Wall -Wno-unused-variable -Wno-unused-but-set-variable -std=gnu99 
+LDFLAGS+=-pthread
 INCLUDE=-I./include -I$(SA_INCLUDE_DIR)
 
 
@@ -40,6 +41,7 @@ emulator: emulator_tests/emulator_tests.a
 clean:
 	rm -f *.o *.so
 	make -C emulator_sensors clean
+	make -C emulator_tests clean
 
 install:
 	mkdir -p ../../sensact-server/plugins
