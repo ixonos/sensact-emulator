@@ -414,6 +414,7 @@ int main(int argc, char **argv) {
 	   char *result = all_tests();
            while(emulatorRunning != 0)
            {
+             sleep(1);
            }
 	} else {
 		printf("setup failed!");
