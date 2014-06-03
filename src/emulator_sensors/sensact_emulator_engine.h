@@ -34,7 +34,7 @@
 #define shared_memory_engine 1234
 
 /**
- *A little engine, with rpm and motor direction
+ *A little engine, with rpm, rpm_max and motor direction
  */
 
 
@@ -43,6 +43,12 @@ typedef struct {
 	const char * rpm_name;
 	void (*setrpm)(int rpm);
 	int (*getrpm)(void);
+
+  int rpm_max;
+	const char * rpm_max_name;
+	void (*setrpm_max)(int rpm_max);
+	int (*getrpm_max)(void);
+
 	uint8_t direction;
 	const char * direction_name;
 	void (*setdirection)(uint8_t direction);
@@ -58,6 +64,16 @@ engine_t *create_emulator_engine();
  * destroy and detach memory
  */
 void destroy_engine_emulator(void);
+/**
+ * setRpm_max
+ */
+void setrpm_max(int newrpm);
+/*
+ * getRpm_max
+ *
+ */
+int getrpm_max(void);
+
 /**
  * setRpm
  */

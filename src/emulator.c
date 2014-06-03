@@ -31,7 +31,8 @@ engine_t *engine;
 senshub_t *senshub;
 ble_t *bledevice;
 const char * emulator_engine = "motor0";
-const char * emulator_bluetooth_lowenergy_device = "ble_device";
+//const char * emulator_bluetooth_lowenergy_device = "ble_device";
+const char * emulator_bluetooth_lowenergy_device = "ble_sensortag0";
 const char * emulator_senshub = "senshub0";
 
 int emulator_connect(int device, void *config) {
@@ -212,7 +213,7 @@ size_t senshub_setint(const char * name, struct request_packet_t *req) {
 size_t set_point(struct request_packet_t *req) {
 	int point = 0;
 	memcpy(&point, &req->data[req->name_length], req->value_length);
-	engine->setrpm(point);
+	engine->setrpm_max(point);
 	return req->value_length;
 }
 
@@ -235,6 +236,18 @@ size_t set_rpm(struct request_packet_t *req) {
 	engine->setrpm(rpm);
 	return req->value_length;
 }
+
+/**
+ *modify the rpm_max
+ */
+
+size_t set_rpm_max(struct request_packet_t *req) {
+	int rpm_max = 0;
+	memcpy(&rpm_max, &req->data[req->name_length], req->value_length);
+	engine->setrpm_max(rpm_max);
+	return req->value_length;
+}
+
 /**
  * set a integer var to the engine
  */
@@ -243,8 +256,13 @@ size_t engine_setint(const char * name, struct request_packet_t *req) {
 	if (!strcmp(name, engine->rpm_name)) {
 		set_rpm(req);
 	}
+
 	if (!strcmp(name, "setpoint")) {
 		set_point(req);
+	}
+
+	if (!strcmp(name, engine->rpm_max_name)) {
+		set_rpm_max(req);
 	}
 	return retval;
 }
@@ -317,7 +335,7 @@ size_t getlenght(const char * var) {
 		if (!strcmp(var, engine->direction_name)) {
 			size = sizeof(char);
 		}
-		if (!strcmp(var, engine->rpm_name) || (!strcmp(var, "setpoint"))) {
+		if (!strcmp(var, engine->rpm_name) || (!strcmp(var, "setpoint")) || (!strcmp(var, "rpm_max_name"))) {
 			size = sizeof(uint32_t);
 		}
 	}
@@ -369,28 +387,28 @@ void ble_device_read(const char *name, char *data, size_t size) {
  */
 void senshub_read(const char * name, char *data, size_t size) {
 
-	if (!strcmp(name, senshub->ambtemp_name)) {
+	if (!strcmp(var, senshub->ambtemp_name)) {
 		float ambtemp = senshub->getambtemp();
 		memcpy(data, &ambtemp, size);
-	} else if (!strcmp(name, senshub->humidity_name)) {
+	} else if (!strcmp(var, senshub->humidity_name)) {
 		float humidity = senshub->gethumidity();
 		memcpy(data, &humidity, size);
-	} else if (!strcmp(name, senshub->objtemp_name)) {
+	} else if (!strcmp(var, senshub->objtemp_name)) {
 		float objtemp = senshub->getobjtemp();
 		memcpy(data, &objtemp, size);
-	} else if (!strcmp(name, senshub->light_name)) {
+	} else if (!strcmp(var, senshub->light_name)) {
 		float light = senshub->getlight();
 		memcpy(data, &light, size);
-	} else if (!strcmp(name, senshub->pitch_name)) {
+	} else if (!strcmp(var, senshub->pitch_name)) {
 		uint32_t pitch = senshub->getpitch();
 		memcpy(data, &pitch, size);
-	} else if (!strcmp(name, senshub->presure_name)) {
+	} else if (!strcmp(var, senshub->presure_name)) {
 		float presure = senshub->getpresure();
 		memcpy(data, &presure, size);
-	} else if (!strcmp(name, senshub->roll_name)) {
+	} else if (!strcmp(var, senshub->roll_name)) {
 		uint32_t roll = senshub->getroll();
 		memcpy(data, &roll, size);
-	} else if (!strcmp(name, senshub->yaw_name)) {
+	} else if (!strcmp(var, senshub->yaw_name)) {
 		uint32_t yaw = senshub->getyaw();
 		memcpy(data, &yaw, size);
 	} else {
@@ -409,7 +427,8 @@ void engine_read(const char * name, char *data, size_t size) {
 	}
 
 	if (!strcmp(var, "setpoint")) {
-		int point = engine->getrpm();
+//		int point = engine->getrpm();
+		int point = engine->getrpm_max();
 		memcpy(data, &point, size);
 	}
 

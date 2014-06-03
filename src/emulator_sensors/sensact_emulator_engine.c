@@ -59,10 +59,17 @@ engine_t *create_emulator_engine() {
 		engine->getdirection = getdirection;
 		engine->direction = 0;
 		engine->direction_name = "direction";
+
 		engine->rpm = 1000;
 		engine->rpm_name = "rpm";
 		engine->getrpm = getrpm;
 		engine->setrpm = setrpm;
+
+		engine->rpm_max = 1000;
+		engine->rpm_max_name = "rpm_max";
+		engine->getrpm_max = getrpm_max;
+		engine->setrpm_max = setrpm_max;   
+
 	}
 	return engine;
 }
@@ -73,11 +80,24 @@ void destroy_engine_emulator() {
 	shmdt(shared_mem_engine);
 }
 
+void setrpm_max(int newrpm_max) {
+	engine->rpm_max = newrpm_max;
+//  printf("setrpm_max : rpm_max = %d\n",engine->rpm_max);
+}
+
+int getrpm_max(void) {
+//  printf("getrpm_max : rpm_max = %d\n",engine->rpm_max);
+	return engine->rpm_max;
+}
+
+
 void setrpm(int newrpm) {
+//  printf("setrpm : rpm = %d\n",engine->rpm);
 	engine->rpm = newrpm;
 }
 
 int getrpm(void) {
+//  printf("getrpm : rpm = %d\n",engine->rpm);
 	return engine->rpm;
 }
 

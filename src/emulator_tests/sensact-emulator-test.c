@@ -35,6 +35,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <errno.h>
 #include "sensact-emulator-test.h"
 #include "../emulator_sensors/sensact_emulator_ble.h"
 #include "../emulator_sensors/sensact_emulator_engine.h"
@@ -48,6 +49,7 @@
 #define RUN_HUMIDITY_THREAD_ID			 4
 #define RUN_BRIGHTNESS_THREAD_ID		 5
 #define RUN_AIRPRESSURE_THREAD_ID                6
+#define RUN_BLE_THREAD_ID 7
 
 #define AMBIENT_TEMPERATURE_CHANGE_DELAY	400000
 #define TEMPERATURE_CHANGE_DELAY		800000
@@ -67,9 +69,12 @@ int emulatorRunning = 1;
 
 int tests_run = 0;
 
+int rpm_max_last = 0;
+
 void *shared_memory;
 senshub_t * senshub;
 engine_t *engine;
+ble_t *ble;
 /**
  *dummy to write RPM
  */
@@ -79,24 +84,68 @@ void emulator_set_direction(int direction) {
 }
 
 void emulator_set_rpm(int rpm) {
-	engine->rpm = rpm;
+  if (engine) {
+  	engine->rpm = rpm;
+  }
 }
+
+int emulator_get_rpm() {
+	return engine->rpm;
+}
+
+int emulator_get_rpm_max(){
+  return engine->rpm_max;
+}
+
+static char * test_engine_rand_value() {
+  int l_rpm_max = emulator_get_rpm_max();
+  emulator_set_rpm(l_rpm_max - (rand() % 50));
+  return 0;
+}
+
+static char * test_engine_setting_its_value() {
+ emulator_set_rpm(0);
+ int l_rpm = emulator_get_rpm();
+ int l_rpm_max = emulator_get_rpm_max();
+
+ if (rpm_max_last != l_rpm_max) {
+   rpm_max_last = l_rpm_max;
+   if (l_rpm <= l_rpm_max){
+     for (; l_rpm <= l_rpm_max ; l_rpm++) {
+       emulator_set_rpm(l_rpm);
+   }
+  }
+  else {
+    for (l_rpm = l_rpm_max; l_rpm > l_rpm_max ; l_rpm--) {
+       emulator_set_rpm(l_rpm);
+    }
+  }
+ } 
+ else {
+   test_engine_rand_value();
+ }
+ return 0;
+}
+
 
 /**
  * sweeps the engine from 1 to max to 1 - 10 times
  */
 static char * test_sweep_engine_fast() {
+  printf("test_sweep_engine_fast\n");
 	int rpm = 0;
 	emulator_set_rpm(rpm);
 	int count;
 	for (count = 0; count < 10; count++) {
 		for (rpm = 0; rpm < 8000; rpm++) {
 			emulator_set_rpm(rpm);
+			usleep(SWEEP_ENGINE_ZERO_TO_MAX_DELAY);
 		}
 		sleep(SWEEP_ENGINE_FAST_DELAY);
 		mu_assert("error, engine->rpm != 7999", engine->rpm == 7999);
 		for (rpm = 8000; rpm > 0; rpm--) {
 			emulator_set_rpm(rpm);
+			usleep(SWEEP_ENGINE_ZERO_TO_MAX_DELAY);
 		}
 		sleep(SWEEP_ENGINE_FAST_DELAY);
 		mu_assert("error, engine->rpm != 1", engine->rpm == 1);
@@ -108,7 +157,7 @@ static char * test_sweep_engine_fast() {
  * sweeps the engine from 1 to 8000 - 10 times
  */
 static char * test_sweep_engine_zero_max() {
-
+  printf("test_sweep_engine_zero_max\n");
 	int rpm = 0;
 	emulator_set_rpm(rpm);
 	int count;
@@ -126,7 +175,7 @@ static char * test_sweep_engine_zero_max() {
  * sweeps the engine from 1 to 8000 to 1 - 10 times
  */
 static char * test_sweep_engine_zero_max_zero() {
-
+  printf("test_sweep_engine_zero_max_zero\n");
 	int rpm = 0;
 	emulator_set_rpm(rpm);
 	int count;
@@ -150,7 +199,6 @@ static char * test_sweep_engine_zero_max_zero() {
  */
 
 static char * test_sweep_engine_and_reverse() {
-
 	int rpm = 0;
 
 	int count;
@@ -162,16 +210,13 @@ static char * test_sweep_engine_and_reverse() {
 	emulator_set_rpm(1000);
 	emulator_set_direction(1);
 	//setdirection(1);
-
 	return 0;
 }
 /**
  * send some values after the the senshub orientation part
  */
 static char * test_orientation_sweep() {
-
 	int i, count = 0;
-	printf("Starting %s\n", __PRETTY_FUNCTION__);
 
 	for (count = 0; count < 10; count++) {
 		for (i = 0; i < 1000; i++) {
@@ -196,121 +241,48 @@ static char * test_orientation_sweep() {
 			usleep(ORIENTATION_SWEEP_DELAY/10);
 		}
 	}
-	printf("Ending %s\n", __PRETTY_FUNCTION__);
 	return 0;
 }
 
 static char * test_air_pressure() {
-	printf("Starting %s\n", __PRETTY_FUNCTION__);
-	int factor = 100;
-	int pressure = 700 * factor;
-	int i;
-	int j;
-	for (j = 0; j < 10; j++) {
-		for (i = pressure; i < 1200 * factor; i++) {
-			senshub->presure = i;
-			usleep(AIR_PRESSURE_CHANGE_DELAY);
-		}
-		sleep(1);
-		for (i = 1200 * factor; i > pressure; i--) {
-			senshub->presure = i;
-			usleep(AIR_PRESSURE_CHANGE_DELAY);
-		}
-		sleep(1);
-	}
-	printf("Ending %s\n", __PRETTY_FUNCTION__);
+  senshub->presure = 800 - (rand() % 50);
 	return 0;
 }
 
 static char * test_brightness_sweep() {
-	int brightness = 0;
-	int i;
-	int j;
-
-	for (j = 0; j < 10; j++) {
-		for (i = brightness; i < 100; i++) {
-			senshub->light = i;
-			usleep(BRIGHTNESS_CHANGE_DELAY);
-		}
-		sleep(1);
-		for (i = 100; i > 0; i--) {
-			senshub->light = i;
-			usleep(BRIGHTNESS_CHANGE_DELAY);
-		}
-		sleep(1);
-	}
-	printf("Ending %s\n", __PRETTY_FUNCTION__);
+  senshub->light = 80 - (rand() % 10);
 	return 0;
 }
 
 static char * test_humidity_sweep() {
-	int humidity = 0;
-	int i;
-	int j = 0;
-	for (j = 0; j < 10; j++) {
-		for (i = humidity; i < 100; i++) {
-			senshub->humidity = i;
-			usleep(HUMIDITY_CHANGE_DELAY);
-		}
-		sleep(1);
-		for (i = 100; i > 0; i--) {
-			senshub->humidity = i;
-			usleep(HUMIDITY_CHANGE_DELAY);
-		}
-		sleep(1);
-	}
-	printf("Ending %s\n", __PRETTY_FUNCTION__);
+  senshub->humidity = 80 - (rand() % 20);
 	return 0;
 }
 
 static char * test_ambient_temperature_sweep() {
-	printf("Starting %s\n", __PRETTY_FUNCTION__);
-	int temp = -20;
-	int i;
-	int j = 0;
-	for (j = 0; j < 10; j++) {
-		for (i = temp; i < 50; i++) {
-			senshub->ambtemp = i;
-			usleep(AMBIENT_TEMPERATURE_CHANGE_DELAY);
-		}
-		sleep(1);
-		for (i = 50; i > temp; i--) {
-			senshub->ambtemp = i;
-			usleep(AMBIENT_TEMPERATURE_CHANGE_DELAY);
-
-		}
-		sleep(1);
-	}
-	printf("Ending %s\n", __PRETTY_FUNCTION__);
+  senshub->ambtemp = 0 - (rand() % 5);
 	return 0;
 }
 
 static char * test_temperature_sweep() {
-	printf("Starting %s\n", __PRETTY_FUNCTION__);
-	int temp = -20;
-	int i;
-	int j = 0;
-	for (j = 0; j < 10; j++) {
-		for (i = temp; i < 50; i++) {
-			senshub->objtemp = i;
-			usleep(TEMPERATURE_CHANGE_DELAY);
-		}
-		sleep(1);
-		for (i = 50; i > temp; i--) {
-			senshub->objtemp = i;
-			usleep(TEMPERATURE_CHANGE_DELAY);
-		}
-		sleep(1);
-	}
-	printf("Ending %s\n", __PRETTY_FUNCTION__);
+  senshub->objtemp = 20 - (rand() % 5);
 	return 0;
 }
+
+
+static char * test_ble_sweep() {
+  ble->temp = 20 - (rand() % 5);
+	return 0;
+}
+
+
 
 void * runorientation_test()
 {
         while(1)
         {
             mu_run_test(test_orientation_sweep);
+            sleep(1);
         }
 }
 
@@ -319,6 +291,7 @@ void * runtemperature_test()
         while(1)
         {
            mu_run_test(test_temperature_sweep);
+           sleep(1);
         }
 }
 
@@ -327,6 +300,7 @@ void * runambienttemperature_test()
         while(1)
         {
            mu_run_test(test_ambient_temperature_sweep);
+           usleep(500000);
         }
 }
 
@@ -335,6 +309,7 @@ void * runhumidity_test()
         while(1)
         {
            mu_run_test(test_humidity_sweep);
+           usleep(1000000);
         }
 }
 
@@ -343,6 +318,7 @@ void * runbrightness_test()
         while(1)
         {
            mu_run_test(test_brightness_sweep);
+           usleep(900000);
         }
 }
 
@@ -351,7 +327,16 @@ void * runairpressure_test()
         while(1)
         {
            mu_run_test(test_air_pressure);
+           usleep(900000);
         }
+}
+
+
+void * runbletemp_test() {
+  while (1) {
+    test_ble_sweep();
+    usleep(800000);
+  }
 }
 
 static char* runsenshub_tests() {
@@ -362,17 +347,17 @@ static char* runsenshub_tests() {
         pthread_create(&(threadId[RUN_HUMIDITY_THREAD_ID]), NULL, &runhumidity_test, NULL);
         pthread_create(&(threadId[RUN_BRIGHTNESS_THREAD_ID]), NULL, &runbrightness_test, NULL);
         pthread_create(&(threadId[RUN_AIRPRESSURE_THREAD_ID]), NULL, &runairpressure_test, NULL);
+        pthread_create(&(threadId[RUN_BLE_THREAD_ID]), NULL, &runbletemp_test, NULL);
 
 	return 0;
 }
 
+
 void * runengine_tests() {
-
-	mu_run_test(test_sweep_engine_fast);
-	mu_run_test(test_sweep_engine_zero_max);
-	mu_run_test(test_sweep_engine_zero_max_zero);
-	mu_run_test(test_sweep_engine_and_reverse);
-
+ while(1) {
+   mu_run_test(test_engine_setting_its_value);
+   usleep(100000);
+ }
 	return 0;
 }
 
@@ -390,26 +375,58 @@ int setup() {
 	int retval = 0;
 	int shmid = 0;
 
-	shmid = shmget((key_t) shared_memory_engine, sizeof(engine_t),
-			0666 | IPC_CREAT);
-	if (shmid != -1) {
-		shared_memory = shmat(shmid, (void *) 0, 0);
-		engine = (engine_t *) shared_memory;
-		retval = 1;
-	}
-
+  printf("setup() : shared_memory_senshub = %d\n",shared_memory_senshub);
 	shmid = shmget((key_t) shared_memory_senshub, sizeof(senshub_t),
 			0666 | IPC_CREAT);
-	if (shmid != -1) {
+  printf("setup() : shmid = %d\n",shmid);
+	if (shmid == -1) {
+		printf("shmget failed %s \n", strerror( errno));
+	} else {
 		shared_memory = shmat(shmid, (void *) 0, 0);
 		senshub = (senshub_t *) shared_memory;
 		retval = 1;
-	}
+  } 
+
+	shmid = shmget((key_t) shared_memory_engine, sizeof(engine_t),0666 | IPC_CREAT);
+  printf("setup() : shmid = %d\n",shmid);
+	if (shmid == -1) {
+		printf("shmget failed %s \n", strerror( errno));
+	} else {
+    printf("setup:shmid\n");
+		shared_memory = shmat(shmid, (void *) 0, 0);
+    printf("setup:shmid:shared_memory 0x%x\n",shared_memory);
+		engine = (engine_t *) shared_memory;
+    printf("setup:shmid:engine 0x%x\n",engine);     
+		retval = 1;
+  }
+
+
+	shmid = shmget((key_t) shared_memory_ble, sizeof(ble_t),0666 | IPC_CREAT);
+  printf("setup() : shmid = %d\n",shmid);
+	if (shmid == -1) {
+		printf("shmget failed %s \n", strerror( errno));
+	} else {
+    printf("setup:shmid\n");
+		shared_memory = shmat(shmid, (void *) 0, 0);
+    printf("setup:shmid:shared_memory 0x%x\n",shared_memory);
+		ble = (ble_t *) shared_memory;
+    printf("setup:shmid:ble 0x%x\n",ble);     
+		retval = 1;
+  }
+
+
+
 	return retval;
 }
 
 int main(int argc, char **argv) {
+
+  time_t t;
+
+  srand((unsigned) time(&t));
+  printf("main()\n");
 	int retval = setup();
+  printf("main() : retval = %d\n",retval);
 	if (retval) {
 	   char *result = all_tests();
            while(emulatorRunning != 0)

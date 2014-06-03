@@ -41,7 +41,6 @@ void *shared_mem = (void*) 0;
 ble_t * ble_device;
 int shmid;
 ble_t *create_emulator_ble() {
-
 	shmid = shmget((key_t) shared_memory_ble, sizeof(ble_t), 0666 | IPC_CREAT);
 	if (shmid == -1) {
 		printf("shmget failed\n");
